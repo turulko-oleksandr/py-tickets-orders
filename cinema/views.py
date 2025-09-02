@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from rest_framework import viewsets
+from rest_framework.pagination import PageNumberPagination
 
 from cinema.models import Genre, Actor, CinemaHall, Movie, MovieSession, Order
 
@@ -81,10 +82,8 @@ class MovieSessionViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == "list":
             return MovieSessionListSerializer
-
         if self.action == "retrieve":
             return MovieSessionDetailSerializer
-
         return MovieSessionSerializer
 
     def get_queryset(self):
@@ -93,26 +92,17 @@ class MovieSessionViewSet(viewsets.ModelViewSet):
         movie_id_str = self.request.query_params.get("movie")
 
         if date_str:
-            try:
-                date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
-                queryset = queryset.filter(show_time__date=date_obj)
-            except ValueError:
-                pass
+            queryset = queryset.filter(show_time__date=date_str)
 
         if movie_id_str:
             try:
-                movie_id = int(movie_id_str)
-                queryset = queryset.filter(movie__id=movie_id)
+                queryset = queryset.filter(movie__id=int(movie_id_str))
             except (ValueError, TypeError):
                 pass
 
-        queryset = queryset.select_related(
-            "movie", "cinema_hall"
-        ).prefetch_related("tickets")
-
-        return queryset
-
+        return queryset.select_related("movie", "cinema_hall").prefetch_related("tickets")
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    pagination_class = PageNumberPagination
