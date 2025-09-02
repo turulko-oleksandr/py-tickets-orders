@@ -109,3 +109,11 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     pagination_class = PageNumberPagination
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = self.queryset.filter(user=user)
+        return queryset.prefetch_related("tickets")
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
