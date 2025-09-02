@@ -100,7 +100,10 @@ class MovieSessionViewSet(viewsets.ModelViewSet):
             except (ValueError, TypeError):
                 pass
 
-        return queryset.select_related("movie", "cinema_hall").prefetch_related("tickets")
+        return queryset.select_related(
+            "movie", "cinema_hall"
+        ).prefetch_related("tickets")
+
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
